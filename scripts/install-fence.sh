@@ -122,7 +122,11 @@ case "$channel" in
     mkdir -p "$bindir"
     [ -w "$bindir" ] || err "cannot write to $bindir; set HOOP_BIN_DIR to a writable directory"
     install -m 0755 "$tmp/fence" "$bindir/fence"
-    say "installed to $bindir/fence"
+    installed_at="$bindir/fence"
+    say "installed to $installed_at"
+    if [ "$bindir" != "$HOME/.local/bin" ]; then
+      say "note: $bindir is not where the plugin hooks look — set HOOP_FENCE_BIN=$installed_at in your environment"
+    fi
     ;;
 
   *)
@@ -130,6 +134,11 @@ case "$channel" in
     ;;
 esac
 
-installed=$(find_fence) || err "install finished but fence was not found — set HOOP_FENCE_BIN to its location"
+# The release channel knows exactly where it put the binary; package
+# managers need re-discovery.
+installed="${installed_at:-}"
+if [ -z "$installed" ]; then
+  installed=$(find_fence) || err "install finished but fence was not found — set HOOP_FENCE_BIN to its location"
+fi
 say "fence $("$installed" version 2>/dev/null || echo '(version unknown)') ready at $installed"
 say "guardrails are active for new tool calls; the 🚧 banner appears from the next session"
