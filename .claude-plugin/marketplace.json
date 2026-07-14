@@ -1,0 +1,17 @@
+{
+  "name": "hoop",
+  "owner": {
+    "name": "hoop.dev",
+    "url": "https://hoop.dev"
+  },
+  "metadata": {
+    "description": "Hoop plugins for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "hoop",
+      "source": "./",
+      "description": "Hoop's toolbelt for Claude Code: agent guardrails (Fence), credential cloaking (Cloak), session risk analysis, token saving on supported commands (Julius), and known-pattern PII detection (Alcatraz)."
+    }
+  ]
+}
