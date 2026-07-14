@@ -1,0 +1,50 @@
+#!/bin/sh
+# Hoop toolbelt status report. Read-only. One line per finding, prefixed
+# OK / MISSING / INFO / NOTE, so both humans and the doctor command can
+# read it at a glance. Always exits 0 — this is a report, not a gate.
+set -u
+
+# Resolve a binary the way the hook wrapper does: PATH, then common
+# install dirs (GUI-launched apps often miss /opt/homebrew/bin).
+find_bin() {
+  command -v "$1" 2>/dev/null && return 0
+  for c in "/opt/homebrew/bin/$1" "/usr/local/bin/$1" "$HOME/.local/bin/$1" "$HOME/go/bin/$1"; do
+    if [ -x "$c" ]; then
+      echo "$c"
+      return 0
+    fi
+  done
+  return 1
+}
+
+echo "Hoop toolbelt status — $(uname -s) $(uname -m)"
+
+if fence_bin=$(find_bin fence); then
+  echo "OK       fence $("$fence_bin" version 2>/dev/null || echo '(version unknown)') at $fence_bin — guardrails active"
+else
+  case "$(uname -s)" in
+    Darwin | Linux)
+      echo "MISSING  fence — guardrails are OFF; the install-fence.sh script in this plugin fixes it (no sudo)"
+      ;;
+    *)
+      echo "MISSING  fence — no native support on this OS yet; use WSL (hoophq/fence#26)"
+      ;;
+  esac
+fi
+
+if cloak_bin=$(find_bin cloak); then
+  # `cloak --version` prints "cloak X.Y.Z (commit …)"; keep just the version.
+  echo "OK       cloak $("$cloak_bin" --version 2>/dev/null | awk '{print $2; exit}' || echo '(version unknown)') at $cloak_bin"
+else
+  echo "INFO     cloak not installed — optional; credential cloaking for engineers pointing agents at real infra (github.com/hoophq/cloak)"
+fi
+
+# fence init writes settings-level hooks that duplicate this plugin's.
+for f in "$HOME/.claude/settings.json" ".claude/settings.json" ".claude/settings.local.json"; do
+  if [ -f "$f" ] && grep -q "fence hook claude-code" "$f" 2>/dev/null; then
+    echo "NOTE     duplicate fence hooks in $f (from 'fence init') — the plugin already provides them; 'fence uninstall' removes the copy, the binary stays"
+  fi
+done
+
+echo "INFO     Julius, Risk Analyzer, and Alcatraz integrations are still landing — see the plugin README"
+exit 0

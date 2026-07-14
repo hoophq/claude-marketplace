@@ -13,11 +13,13 @@ In any Claude Code session (terminal, desktop app's Code mode, or IDE):
 /plugin install hoop@hooplabs
 ```
 
-The install is user-level: it follows you across sessions and projects. Run `/hoop:doctor` afterwards to check which tool binaries are present.
+The install is user-level: it follows you across sessions and projects.
 
-With the plugin installed and the `fence` binary present (`brew install hoophq/tap/fence`), every session is guarded: a 🚧 banner confirms Fence is active, catastrophic tool calls are blocked with a reason, and ambiguous ones ask first. No binary? The plugin fails open and tells you once per session.
+Then start a new session — that's it. If the `fence` binary is missing, Claude offers to set it up; say yes and one script (no sudo) installs it via Homebrew, npm, or a checksum-verified download from GitHub releases into `~/.local/bin` — the plugin finds it there, no PATH changes needed. Guardrails apply immediately; the 🚧 banner confirms from the next session. `/hoop:doctor` re-checks everything on demand.
 
-> Already ran `fence init` before installing the plugin? Run `fence uninstall` — the plugin ships the same hooks, so the settings-level copy just duplicates evaluation.
+Once guarded: catastrophic tool calls are blocked with a reason, ambiguous ones ask first. Try asking the agent to delete your home directory — watch it bounce.
+
+> Already ran `fence init` before installing the plugin? Run `fence uninstall` — the plugin ships the same hooks, so the settings-level copy just duplicates evaluation. `/hoop:doctor` detects this and offers the fix.
 
 ## What's in the box
 
@@ -32,7 +34,8 @@ With the plugin installed and the `fence` binary present (`brew install hoophq/t
 ## Requirements
 
 - Claude Code ≥ 2.0
-- Tool binaries install on demand (`/hoop:doctor` reports what's missing and how to get it)
+- macOS or Linux (fence has no native Windows support yet — WSL works)
+- No package manager needed: binaries install on demand via `/hoop:doctor` or the session-start offer
 
 ## Development
 

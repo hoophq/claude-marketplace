@@ -11,7 +11,10 @@
 - **Rules are configurable without touching this plugin**: Fence layers its embedded recommended pack, packs installed via `fence add`, a project-local `.fence.yaml`, and `--rules` files. See [hoophq/fence](https://github.com/hoophq/fence).
 - Already ran `fence init`? Those settings-level hooks and this plugin's are the same thing — run `fence uninstall` to drop the settings copy and avoid double evaluation.
 
+## Missing-binary flow — shipped
+
+When fence is absent, the `SessionStart` hook emits two things: a one-line hint to the user, and `additionalContext` telling the agent to proactively offer the one-script setup (`scripts/install-fence.sh` — brew, npm, or checksum-verified release download to `~/.local/bin`, never sudo). `/hoop:doctor` drives the same flow on demand via `scripts/doctor.sh`.
+
 ## Planned
 
 - **Julius** (`PreToolUse` on `Bash`) — token-saving command rewrites (ATR-111)
-- **Binary install flow** (`SessionStart`) — detect missing tool binaries and offer install (ATR-109)

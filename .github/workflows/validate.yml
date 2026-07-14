@@ -35,3 +35,29 @@ jobs:
         run: |
           npm install -g @anthropic-ai/claude-code
           claude plugin validate .
+
+  install-e2e:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Doctor reports missing fence cleanly
+        run: |
+          out=$(scripts/doctor.sh)
+          echo "$out"
+          echo "$out" | grep -q "MISSING  fence"
+
+      - name: Install fence from GitHub release (checksum-verified)
+        run: |
+          HOOP_INSTALL_CHANNEL=release HOOP_BIN_DIR="$RUNNER_TEMP/hoopbin" scripts/install-fence.sh
+          "$RUNNER_TEMP/hoopbin/fence" version
+
+      - name: Doctor sees the installed binary via ~/.local/bin
+        run: |
+          HOOP_INSTALL_CHANNEL=release scripts/install-fence.sh
+          out=$(scripts/doctor.sh)
+          echo "$out"
+          echo "$out" | grep -q "OK       fence"

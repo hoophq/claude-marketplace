@@ -1,22 +1,20 @@
 ---
-description: Check Hoop plugin health — tool binaries, versions, and hook wiring
-allowed-tools: Bash(command -v:*), Bash(fence --version), Bash(cloak --version)
+description: Check Hoop tool health and set up anything missing
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/doctor.sh), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/install-fence.sh), Bash(fence uninstall)
 ---
 
 # Hoop doctor
 
-Report the installation status of the Hoop toolbelt on this machine.
+Check the health of the Hoop toolbelt on this machine and fix what's missing. The user may be non-technical — keep the language plain and the steps minimal.
 
-For each tool below, check whether the binary is on PATH with `command -v <binary>`, and if present get its version:
+1. Run `${CLAUDE_PLUGIN_ROOT}/scripts/doctor.sh` and relay the report conversationally (a short summary, not raw output). Line prefixes: `OK` healthy, `MISSING` needs action, `NOTE` worth surfacing, `INFO` optional context.
 
-| Tool | Binary | Purpose |
-| --- | --- | --- |
-| Fence | `fence` | Guardrails for AI agents — blocks catastrophic tool calls |
-| Cloak | `cloak` | Credential cloaking — real secrets never reach the model |
+2. If fence is `MISSING`: offer to install it, and on a yes run `${CLAUDE_PLUGIN_ROOT}/scripts/install-fence.sh`. It is one script with no sudo — it picks Homebrew, npm, or a checksum-verified GitHub release download into `~/.local/bin` (the plugin finds it there; no PATH changes). On success, tell the user: guardrails protect new tool calls immediately, and the 🚧 banner appears from the next session.
 
-Present the results as a short table (tool, installed yes/no, version), followed by install hints for anything missing:
+3. If the report `NOTE`s duplicate fence hooks: explain that the plugin already provides the same hooks, and offer to run `fence uninstall` — it removes only the settings-level hook entries; the fence binary and its rules stay.
 
-- Fence: `brew install hoophq/tap/fence` (macOS) or see https://github.com/hoophq/fence
-- Cloak: see https://github.com/hoophq/cloak
+4. Cloak is optional: mention it only if the user asks or clearly works with databases/credentials — it's for engineers pointing agents at real infrastructure.
 
-> Note: this is the scaffolding stub. The full install/diagnostic flow — including Julius, Risk Analyzer, and Alcatraz, plus hook wiring and proxy health checks — lands with ATR-109.
+5. If an install fails, show the exact error line and the manual fallbacks: `brew install hoophq/tap/fence` or `npm install -g @hoophq/fence`, or downloading from https://github.com/hoophq/fence/releases. On native Windows, fence isn't supported yet — WSL works.
+
+6. After any fix, re-run `${CLAUDE_PLUGIN_ROOT}/scripts/doctor.sh` to confirm and show the final state.

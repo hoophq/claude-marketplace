@@ -29,7 +29,10 @@ if [ -n "$FENCE" ] && [ -x "$FENCE" ]; then
   exec "$FENCE" hook claude-code "$@"
 fi
 
-if [ "$1" = "session-start" ]; then
-  printf '{"systemMessage":"🚧 Hoop: Fence not found — agent guardrails are off. Install it with: brew install hoophq/tap/fence (then verify with /hoop:doctor)"}\n'
+if [ "${1:-}" = "session-start" ]; then
+  # Two audiences: the user gets a one-line hint; the agent gets context so
+  # it can proactively offer the one-script setup (ATR-109 decision).
+  dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+  printf '{"systemMessage":"🚧 Hoop: Fence not found — agent guardrails are off. Say yes when Claude offers to set it up, or run /hoop:doctor.","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"The Hoop plugin is installed but the fence binary is missing, so Fence guardrails are inactive. Early in the session, offer to set it up for the user: run %s/install-fence.sh with Bash — one script, no sudo; it picks Homebrew, npm, or a checksum-verified GitHub release download into ~/.local/bin. On success, guardrails apply to new tool calls immediately. If the user declines, do not raise it again this session."}}\n' "$dir"
 fi
 exit 0
