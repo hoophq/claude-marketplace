@@ -15,6 +15,10 @@
 
 When fence is absent, the `SessionStart` hook emits two things: a one-line hint to the user, and `additionalContext` telling the agent to proactively offer the one-script setup (`scripts/install-fence.sh` — brew, npm, or checksum-verified release download to `~/.local/bin`, never sudo). `/hoop:doctor` drives the same flow on demand via `scripts/doctor.sh`.
 
-## Planned
+## Julius — shipped
 
-- **Julius** (`PreToolUse` on `Bash`) — token-saving command rewrites (ATR-111)
+- **`PreToolUse`** on `Bash` → `scripts/julius-hook.sh pre` → `julius hook claude-pre`. Supported commands are rewritten to run through the julius wrapper (`git status` → `julius git status`), which executes the real command and filters the output — typically 60–90% token savings on supported commands. Unsupported commands pass through untouched; permission rules are respected.
+- **`PostToolUse`** on `Bash|Grep|Glob|Read` → `scripts/julius-hook.sh post` → `julius hook claude-post`, compressing native tool outputs (errors/warnings always kept; fresh file content never rewritten).
+- **Fail-open and silent**: no julius binary means no rewrite and no noise — `/hoop:doctor` reports it. `HOOP_JULIUS_BIN` overrides discovery; `HOOP_JULIUS_DISABLE=1` switches the integration off.
+- **Savings are measured**: `julius savings` shows the per-command ledger.
+- Ran `julius init` before installing the plugin (or use rtk)? Two rewriters race — `/hoop:doctor` detects it and helps you keep exactly one.

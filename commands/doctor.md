@@ -1,6 +1,6 @@
 ---
 description: Check Hoop tool health and set up anything missing
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/doctor.sh), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/install-fence.sh), Bash(fence uninstall)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/doctor.sh), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/install-fence.sh), Bash(fence uninstall), Bash(brew install hoophq/tap/julius), Bash(julius savings)
 ---
 
 # Hoop doctor
@@ -13,8 +13,10 @@ Check the health of the Hoop toolbelt on this machine and fix what's missing. Th
 
 3. If the report `NOTE`s duplicate fence hooks: explain that the plugin already provides the same hooks, and offer to run `fence uninstall` — it removes only the settings-level hook entries; the fence binary and its rules stay.
 
-4. Cloak is optional: mention it only if the user asks or clearly works with databases/credentials — it's for engineers pointing agents at real infrastructure.
+4. If julius is `MISSING` and the user is interested in token savings: offer `brew install hoophq/tap/julius` (macOS/Linux with brew) or julius's installer from https://github.com/hoophq/julius. Once installed, supported command outputs compress automatically and `julius savings` shows the measured ledger. If a `NOTE` reports racing rewriters, help the user pick one (settings-level entry vs the plugin's; `HOOP_JULIUS_DISABLE=1` silences the plugin side).
 
-5. If an install fails, show the exact error line and the manual fallbacks: `brew install hoophq/tap/fence` or `npm install -g @hoophq/fence`, or downloading from https://github.com/hoophq/fence/releases. On native Windows, fence isn't supported yet — WSL works.
+5. Cloak is optional: mention it only if the user asks or clearly works with databases/credentials — it's for engineers pointing agents at real infrastructure.
 
-6. After any fix, re-run `${CLAUDE_PLUGIN_ROOT}/scripts/doctor.sh` to confirm and show the final state.
+6. If an install fails, show the exact error line and the manual fallbacks: `brew install hoophq/tap/fence` or `npm install -g @hoophq/fence`, or downloading from https://github.com/hoophq/fence/releases. On native Windows, fence isn't supported yet — WSL works.
+
+7. After any fix, re-run `${CLAUDE_PLUGIN_ROOT}/scripts/doctor.sh` to confirm and show the final state.

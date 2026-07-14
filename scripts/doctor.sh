@@ -32,6 +32,12 @@ else
   esac
 fi
 
+if julius_bin=$(find_bin julius); then
+  echo "OK       julius $("$julius_bin" --version 2>/dev/null | awk '{print $NF; exit}' || echo '(version unknown)') at $julius_bin — token savings active on supported commands ('julius savings' shows the ledger)"
+else
+  echo "MISSING  julius (optional) — token savings off; install: brew install hoophq/tap/julius, or ask the agent to"
+fi
+
 if cloak_bin=$(find_bin cloak); then
   # `cloak --version` prints "cloak X.Y.Z (commit …)"; keep just the version.
   echo "OK       cloak $("$cloak_bin" --version 2>/dev/null | awk '{print $2; exit}' || echo '(version unknown)') at $cloak_bin"
@@ -39,12 +45,19 @@ else
   echo "INFO     cloak not installed — optional; credential cloaking for engineers pointing agents at real infra (github.com/hoophq/cloak)"
 fi
 
-# fence init writes settings-level hooks that duplicate this plugin's.
+# fence init / julius init / rtk write settings-level hooks that duplicate
+# (or fight with) this plugin's.
 for f in "$HOME/.claude/settings.json" ".claude/settings.json" ".claude/settings.local.json"; do
-  if [ -f "$f" ] && grep -q "fence hook claude-code" "$f" 2>/dev/null; then
+  [ -f "$f" ] || continue
+  if grep -q "fence hook claude-code" "$f" 2>/dev/null; then
     echo "NOTE     duplicate fence hooks in $f (from 'fence init') — the plugin already provides them; 'fence uninstall' removes the copy, the binary stays"
+  fi
+  # Only a real race when the julius binary exists — without it the
+  # plugin's rewrite hook is a silent no-op.
+  if [ -n "${julius_bin:-}" ] && grep -qE "(julius|rtk) hook claude" "$f" 2>/dev/null; then
+    echo "NOTE     settings-level command-rewrite hooks in $f (julius init or rtk) — the plugin also rewrites; two rewriters race, so keep one: either remove the settings entry ('julius uninstall' / edit for rtk) or set HOOP_JULIUS_DISABLE=1 to silence the plugin's"
   fi
 done
 
-echo "INFO     Julius, Risk Analyzer, and Alcatraz integrations are still landing — see the plugin README"
+echo "INFO     Risk Analyzer and Alcatraz integrations are still landing — see the plugin README"
 exit 0

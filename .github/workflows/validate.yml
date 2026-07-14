@@ -61,3 +61,12 @@ jobs:
           out=$(scripts/doctor.sh)
           echo "$out"
           echo "$out" | grep -q "OK       fence"
+
+      - name: Julius rewrite protocol through plugin wrapper
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/hoophq/julius/main/install.sh | sh
+          out=$(echo '{"tool_name":"Bash","tool_input":{"command":"git status"}}' | scripts/julius-hook.sh pre)
+          echo "rewrite: $out"
+          echo "$out" | grep -q '"updatedInput"'
+          test -z "$(echo '{"tool_name":"Bash","tool_input":{"command":"true"}}' | scripts/julius-hook.sh pre)"
+          test -z "$(echo '{"tool_name":"Bash","tool_input":{"command":"git status"}}' | HOOP_JULIUS_DISABLE=1 scripts/julius-hook.sh pre)"

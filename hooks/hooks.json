@@ -9,6 +9,26 @@
             "command": "${CLAUDE_PLUGIN_ROOT}/scripts/fence-hook.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/julius-hook.sh pre"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Grep|Glob|Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/julius-hook.sh post"
+          }
+        ]
       }
     ],
     "SessionStart": [

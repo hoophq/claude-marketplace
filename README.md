@@ -2,7 +2,7 @@
 
 Hoop's toolbelt for Claude Code and Claude-based agents, in a single install: agent guardrails, credential cloaking, session risk analysis, token savings, and PII detection.
 
-> **Status: early.** Fence guardrails are live; the other tool integrations are landing one by one (see [What's in the box](#whats-in-the-box)).
+> **Status: early.** Fence guardrails and Julius token savings are live; the other tool integrations are landing one by one (see [What's in the box](#whats-in-the-box)).
 
 ## Install
 
@@ -19,6 +19,8 @@ Then start a new session — that's it. If the `fence` binary is missing, Claude
 
 Once guarded: catastrophic tool calls are blocked with a reason, ambiguous ones ask first. Try asking the agent to delete your home directory — watch it bounce.
 
+Want token savings too? Install julius (`brew install hoophq/tap/julius`, or ask the agent via `/hoop:doctor`) and supported command outputs compress automatically — typically 60–90% on supported commands, measured honestly (`julius savings`). No julius, no change: commands run exactly as before.
+
 > Already ran `fence init` before installing the plugin? Run `fence uninstall` — the plugin ships the same hooks, so the settings-level copy just duplicates evaluation. `/hoop:doctor` detects this and offers the fix.
 
 ## What's in the box
@@ -28,7 +30,7 @@ Once guarded: catastrophic tool calls are blocked with a reason, ambiguous ones 
 | [Fence](https://github.com/hoophq/fence) | Guardrails that block catastrophic agent tool calls (`rm -rf ~`, secret exfil, `curl \| sh`, force-push) before they run — semantic shell analysis, near-zero false positives | ✅ live |
 | [Cloak](https://github.com/hoophq/cloak) | Local proxy that hands the agent a fake localhost DSN so real credentials never reach the model | ATR-113 |
 | Risk Analyzer | Post-session diagnostics surfacing the infrastructure risks an agent session introduced | ATR-112 |
-| Julius | Token savings on supported commands via transparent command routing | ATR-111 |
+| [Julius](https://github.com/hoophq/julius) | Token savings on supported commands via transparent command routing — measured, never lossy where it matters | ✅ live |
 | Alcatraz | In-process, known-pattern PII detection — no service, network, or model download | ATR-114 |
 
 ## Requirements
