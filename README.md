@@ -2,7 +2,7 @@
 
 Hoop's toolbelt for Claude Code and Claude-based agents, in a single install: agent guardrails, credential cloaking, session risk analysis, token savings, and PII detection.
 
-> **Status: scaffolding.** The plugin shell installs and loads; tool integrations are landing one by one (tracked in Linear — see [What's in the box](#whats-in-the-box)).
+> **Status: early.** Fence guardrails are live; the other tool integrations are landing one by one (see [What's in the box](#whats-in-the-box)).
 
 ## Install
 
@@ -15,11 +15,15 @@ In any Claude Code session (terminal, desktop app's Code mode, or IDE):
 
 The install is user-level: it follows you across sessions and projects. Run `/hoop:doctor` afterwards to check which tool binaries are present.
 
+With the plugin installed and the `fence` binary present (`brew install hoophq/tap/fence`), every session is guarded: a 🚧 banner confirms Fence is active, catastrophic tool calls are blocked with a reason, and ambiguous ones ask first. No binary? The plugin fails open and tells you once per session.
+
+> Already ran `fence init` before installing the plugin? Run `fence uninstall` — the plugin ships the same hooks, so the settings-level copy just duplicates evaluation.
+
 ## What's in the box
 
 | Tool | What it does | Status |
 | --- | --- | --- |
-| [Fence](https://github.com/hoophq/fence) | Rules-based guardrails that block catastrophic agent tool calls (`rm -rf ~`, secret exfil, `curl \| sh`, force-push) before they run | ATR-110 |
+| [Fence](https://github.com/hoophq/fence) | Guardrails that block catastrophic agent tool calls (`rm -rf ~`, secret exfil, `curl \| sh`, force-push) before they run — semantic shell analysis, near-zero false positives | ✅ live |
 | [Cloak](https://github.com/hoophq/cloak) | Local proxy that hands the agent a fake localhost DSN so real credentials never reach the model | ATR-113 |
 | Risk Analyzer | Post-session diagnostics surfacing the infrastructure risks an agent session introduced | ATR-112 |
 | Julius | Token savings on supported commands via transparent command routing | ATR-111 |
