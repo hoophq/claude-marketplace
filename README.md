@@ -9,7 +9,7 @@ Hoop's toolbelt for Claude Code and Claude-based agents, in a single install: ag
 In any Claude Code session (terminal, desktop app's Code mode, or IDE):
 
 ```
-/plugin marketplace add hoophq/hoop-plugin-for-claude
+/plugin marketplace add hoophq/claude-marketplace
 /plugin install hoop@hoop
 ```
 
@@ -37,7 +37,7 @@ The install is user-level: it follows you across sessions and projects. Run `/ho
 claude plugin validate .
 
 # try the plugin from a local checkout
-claude plugin marketplace add /path/to/hoop-plugin-for-claude
+claude plugin marketplace add /path/to/claude-marketplace
 claude plugin install hoop@hoop
 ```
 

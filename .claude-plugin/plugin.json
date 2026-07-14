@@ -7,7 +7,7 @@
     "url": "https://hoop.dev"
   },
   "homepage": "https://hoop.dev",
-  "repository": "https://github.com/hoophq/hoop-plugin-for-claude",
+  "repository": "https://github.com/hoophq/claude-marketplace",
   "license": "MIT",
   "keywords": [
     "security",
