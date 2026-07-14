@@ -10,7 +10,7 @@ In any Claude Code session (terminal, desktop app's Code mode, or IDE):
 
 ```
 /plugin marketplace add hoophq/claude-marketplace
-/plugin install hoop@hoop
+/plugin install hoop@hooplabs
 ```
 
 The install is user-level: it follows you across sessions and projects. Run `/hoop:doctor` afterwards to check which tool binaries are present.
@@ -38,7 +38,7 @@ claude plugin validate .
 
 # try the plugin from a local checkout
 claude plugin marketplace add /path/to/claude-marketplace
-claude plugin install hoop@hoop
+claude plugin install hoop@hooplabs
 ```
 
 Repo layout: `.claude-plugin/` (plugin + marketplace manifests), `commands/` (slash commands), `hooks/` (hook config), `skills/` (agent skills).
