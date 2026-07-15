@@ -25,6 +25,8 @@ Wondering what your agent has already seen? `/hoop:risk-report` scans the curren
 
 About to commit? `/hoop:pii-scan` checks your diff for PII before it lands — emails, credit cards, national IDs and more (45 known-pattern entity types across 12 countries), checksum-validated where formats allow, detected fully in-process with values always masked. Pass file paths to scan files instead, keep false positives quiet with a `.pii-allowlist`, and pair it with [alcatraz-action](https://github.com/hoophq/alcatraz-action) to enforce the same scan in CI.
 
+And it works while you chat: with alcatraz installed, PII in command and search outputs is **masked live before it reaches the model** (`ja************om`), with a note telling the agent what was hidden — and if your own prompt contains PII, you get a warning the moment you send it. File reads stay untouched by default so edits keep working (`HOOP_PII_MASK_READ=1` extends masking there); `HOOP_PII_MASK_DISABLE=1` switches masking off, `HOOP_PROMPT_GUARD=block|off` tunes the prompt guard.
+
 > Already ran `fence init` before installing the plugin? Run `fence uninstall` — the plugin ships the same hooks, so the settings-level copy just duplicates evaluation. `/hoop:doctor` detects this and offers the fix.
 
 ## What's in the box
@@ -35,7 +37,7 @@ About to commit? `/hoop:pii-scan` checks your diff for PII before it lands — e
 | [Cloak](https://github.com/hoophq/cloak) | Local proxy that hands the agent a fake localhost DSN so real credentials never reach the model | ATR-113 |
 | [Risk Analyzer](https://github.com/hoophq/rs) | Scans local AI sessions for leaked PII and secrets (`/hoop:risk-report`) — known-pattern detection with checksum validation, value-free shareable reports, nothing leaves your machine | ✅ live |
 | [Julius](https://github.com/hoophq/julius) | Token savings on supported commands via transparent command routing — measured, never lossy where it matters | ✅ live |
-| [Alcatraz](https://github.com/hoophq/alcatraz) | In-process, known-pattern PII detection (`/hoop:pii-scan`) — scan diffs, files, or pasted content; no service, network, or model download | ✅ live |
+| [Alcatraz](https://github.com/hoophq/alcatraz) | In-process, known-pattern PII detection — live masking of tool outputs before they reach the model, a prompt guard, and on-demand scans (`/hoop:pii-scan`); no service, network, or model download | ✅ live |
 
 ## Requirements
 

@@ -61,6 +61,9 @@ jobs:
           out=$(scripts/pii-scan.sh)
           echo "$out"
           echo "$out" | grep -q "MISSING  alcatraz"
+          # The hooks are silent no-ops without any binary installed.
+          test -z "$(printf '{"tool_name":"Bash","tool_response":{"stdout":"jane@example.com"}}' | scripts/post-tool.sh)"
+          test -z "$(printf '{"prompt":"mail jane@example.com"}' | scripts/prompt-guard.sh)"
 
       - name: Install fence from GitHub release (checksum-verified)
         run: |
@@ -126,6 +129,30 @@ jobs:
           ! echo "$out" | grep -Fq "jane@example.com"
           git checkout -- README.md
 
+      - name: Live masking hooks end-to-end
+        run: |
+          post='{"tool_name":"Bash","tool_input":{"command":"psql"},"tool_response":{"stdout":"row jane@example.com card 4532015112830366","stderr":"","interrupted":false}}'
+          out=$(printf '%s' "$post" | scripts/post-tool.sh)
+          echo "$out"
+          echo "$out" | grep -q "updatedToolOutput"
+          echo "$out" | grep -q "additionalContext"
+          ! echo "$out" | grep -Fq "jane@example.com"
+          ! echo "$out" | grep -Fq "4532015112830366"
+          # Disable switch: masking off means no opinion (julius not installed yet).
+          test -z "$(printf '%s' "$post" | HOOP_PII_MASK_DISABLE=1 scripts/post-tool.sh)"
+          # Read outputs pass through untouched by default.
+          test -z "$(printf '{"tool_name":"Read","tool_input":{"file_path":"/tmp/u.csv"},"tool_response":{"file":{"filePath":"/tmp/u.csv","content":"jane@example.com"}}}' | scripts/post-tool.sh)"
+          # Prompt guard: warn (default), block, and off.
+          out=$(printf '{"prompt":"customer jane@example.com"}' | scripts/prompt-guard.sh)
+          echo "$out"
+          echo "$out" | grep -q "systemMessage"
+          ! echo "$out" | grep -q '"decision"'
+          out=$(printf '{"prompt":"ssn 536-90-4399"}' | HOOP_PROMPT_GUARD=block scripts/prompt-guard.sh)
+          echo "$out"
+          echo "$out" | grep -q '"decision":"block"'
+          ! echo "$out" | grep -Fq "536-90-4399"
+          test -z "$(printf '{"prompt":"ssn 536-90-4399"}' | HOOP_PROMPT_GUARD=off scripts/prompt-guard.sh)"
+
       - name: Julius rewrite protocol through plugin wrapper
         run: |
           curl -fsSL https://raw.githubusercontent.com/hoophq/julius/main/install.sh | sh
@@ -134,3 +161,10 @@ jobs:
           echo "$out" | grep -q '"updatedInput"'
           test -z "$(echo '{"tool_name":"Bash","tool_input":{"command":"true"}}' | scripts/julius-hook.sh pre)"
           test -z "$(echo '{"tool_name":"Bash","tool_input":{"command":"git status"}}' | HOOP_JULIUS_DISABLE=1 scripts/julius-hook.sh pre)"
+          # Chain smoke: with BOTH binaries present, the composed hook still
+          # masks (payload under julius's 500-byte floor, so compression
+          # no-ops deterministically and masking applies to the original).
+          out=$(printf '{"tool_name":"Bash","tool_input":{"command":"x"},"tool_response":{"stdout":"mail jane@example.com","stderr":""}}' | scripts/post-tool.sh)
+          echo "$out"
+          echo "$out" | grep -q "updatedToolOutput"
+          ! echo "$out" | grep -Fq "jane@example.com"
