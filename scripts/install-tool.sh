@@ -1,27 +1,57 @@
 #!/bin/sh
-# Fence installer for the Hoop plugin — one command, no sudo.
+# Tool installer for the Hoop plugin — one command, no sudo.
+#
+# Usage: install-tool.sh <fence|hooprs>
 #
 # Picks the best channel automatically: Homebrew, then npm, then a
 # checksum-verified download from GitHub releases into ~/.local/bin.
-# The plugin's hook wrapper looks in ~/.local/bin, so the release
-# channel needs no PATH changes.
+# The plugin's wrappers look in ~/.local/bin, so the release channel
+# needs no PATH changes.
 #
 # Environment overrides:
 #   HOOP_INSTALL_CHANNEL=brew|npm|release   force a channel (default: auto)
-#   HOOP_FENCE_VERSION=v1.1.0               release channel: pin a tag (default: latest)
+#   HOOP_FENCE_VERSION / HOOP_HOOPRS_VERSION=v1.1.0
+#                                           release channel: pin a tag (default: latest)
 #   HOOP_BIN_DIR=/path                      release channel: install dir (default: ~/.local/bin)
 set -eu
 
-REPO="hoophq/fence"
+tool="${1:-}"
+case "$tool" in
+  fence)
+    REPO="hoophq/fence"
+    BREW_FORMULA="hoophq/tap/fence"
+    NPM_PKG="@hoophq/fence"
+    VERSION_ARG="version" # `fence version`
+    BIN_ENV="HOOP_FENCE_BIN"
+    pin="${HOOP_FENCE_VERSION:-}"
+    ready_msg="guardrails are active for new tool calls; the 🚧 banner appears from the next session"
+    ;;
+  hooprs)
+    REPO="hoophq/rs"
+    BREW_FORMULA="hoophq/tap/hooprs"
+    NPM_PKG="@hoophq/rs"
+    VERSION_ARG="-version" # `hooprs -version`
+    BIN_ENV="HOOP_HOOPRS_BIN"
+    pin="${HOOP_HOOPRS_VERSION:-}"
+    ready_msg="run /hoop:risk-report to scan this session for leaked PII and secrets"
+    ;;
+  *)
+    echo "hoop-install: usage: install-tool.sh <fence|hooprs>" >&2
+    exit 1
+    ;;
+esac
 
 say() { echo "hoop-install: $*"; }
-err() { echo "hoop-install: $*" >&2; exit 1; }
+err() {
+  echo "hoop-install: $*" >&2
+  exit 1
+}
 have() { command -v "$1" >/dev/null 2>&1; }
 
-# Resolve fence the way the hook wrapper does: PATH, then common install dirs.
-find_fence() {
-  command -v fence 2>/dev/null && return 0
-  for c in /opt/homebrew/bin/fence /usr/local/bin/fence "$HOME/.local/bin/fence" "$HOME/go/bin/fence"; do
+# Resolve the binary the way the plugin wrappers do: PATH, then common install dirs.
+find_tool() {
+  command -v "$tool" 2>/dev/null && return 0
+  for c in "/opt/homebrew/bin/$tool" "/usr/local/bin/$tool" "$HOME/.local/bin/$tool" "$HOME/go/bin/$tool"; do
     if [ -x "$c" ]; then
       echo "$c"
       return 0
@@ -30,9 +60,9 @@ find_fence() {
   return 1
 }
 
-if existing=$(find_fence); then
-  say "fence $("$existing" version 2>/dev/null || echo '(version unknown)') is already installed: $existing"
-  say "nothing to do — guardrails are active"
+if existing=$(find_tool); then
+  say "$tool $("$existing" "$VERSION_ARG" 2>/dev/null || echo '(version unknown)') is already installed: $existing"
+  say "nothing to do"
   exit 0
 fi
 
@@ -49,20 +79,20 @@ fi
 
 case "$channel" in
   brew)
-    say "installing via Homebrew: brew install hoophq/tap/fence"
-    brew install hoophq/tap/fence
+    say "installing via Homebrew: brew install $BREW_FORMULA"
+    brew install "$BREW_FORMULA"
     ;;
 
   npm)
-    say "installing via npm: npm install -g @hoophq/fence"
-    npm install -g @hoophq/fence
+    say "installing via npm: npm install -g $NPM_PKG"
+    npm install -g "$NPM_PKG"
     ;;
 
   release)
     os=$(uname -s | tr '[:upper:]' '[:lower:]')
     case "$os" in
       darwin | linux) ;;
-      *) err "unsupported OS: $os — fence supports macOS and Linux (on Windows, use WSL)" ;;
+      *) err "unsupported OS: $os — $tool supports macOS and Linux (on Windows, use WSL)" ;;
     esac
     arch=$(uname -m)
     case "$arch" in
@@ -85,15 +115,15 @@ case "$channel" in
       err "need curl or wget"
     fi
 
-    tag="${HOOP_FENCE_VERSION:-}"
+    tag="$pin"
     if [ -z "$tag" ]; then
       tag=$(latest_tag)
-      [ -n "$tag" ] || err "could not determine the latest fence version; set HOOP_FENCE_VERSION"
+      [ -n "$tag" ] || err "could not determine the latest $tool version; set ${BIN_ENV%_BIN}_VERSION"
     fi
     ver=${tag#v} # release filenames drop the leading v
 
     base="https://github.com/$REPO/releases/download/$tag"
-    archive="fence_${ver}_${os}_${arch}.tar.gz"
+    archive="${tool}_${ver}_${os}_${arch}.tar.gz"
 
     tmp=$(mktemp -d)
     trap 'rm -rf "$tmp"' EXIT
@@ -101,7 +131,7 @@ case "$channel" in
     say "downloading $archive ($tag)"
     dlo "$base/$archive" "$tmp/$archive" || err "download failed: $base/$archive"
 
-    # A guardrails tool gets no checksum leniency: verification is mandatory,
+    # Security tooling gets no checksum leniency: verification is mandatory,
     # unlike installers that soft-fail when checksums.txt is unavailable.
     dlo "$base/checksums.txt" "$tmp/checksums.txt" || err "could not download checksums.txt; refusing to install unverified"
     want=$(grep " ${archive}\$" "$tmp/checksums.txt" | awk '{print $1}')
@@ -116,16 +146,16 @@ case "$channel" in
     [ "$got" = "$want" ] || err "checksum mismatch for $archive"
     say "checksum OK"
 
-    tar -xzf "$tmp/$archive" -C "$tmp" fence || err "extract failed"
+    tar -xzf "$tmp/$archive" -C "$tmp" "$tool" || err "extract failed"
 
     bindir="${HOOP_BIN_DIR:-$HOME/.local/bin}"
     mkdir -p "$bindir"
     [ -w "$bindir" ] || err "cannot write to $bindir; set HOOP_BIN_DIR to a writable directory"
-    install -m 0755 "$tmp/fence" "$bindir/fence"
-    installed_at="$bindir/fence"
+    install -m 0755 "$tmp/$tool" "$bindir/$tool"
+    installed_at="$bindir/$tool"
     say "installed to $installed_at"
     if [ "$bindir" != "$HOME/.local/bin" ]; then
-      say "note: $bindir is not where the plugin hooks look — set HOOP_FENCE_BIN=$installed_at in your environment"
+      say "note: $bindir is not where the plugin looks — set $BIN_ENV=$installed_at in your environment"
     fi
     ;;
 
@@ -138,7 +168,7 @@ esac
 # managers need re-discovery.
 installed="${installed_at:-}"
 if [ -z "$installed" ]; then
-  installed=$(find_fence) || err "install finished but fence was not found — set HOOP_FENCE_BIN to its location"
+  installed=$(find_tool) || err "install finished but $tool was not found — set $BIN_ENV to its location"
 fi
-say "fence $("$installed" version 2>/dev/null || echo '(version unknown)') ready at $installed"
-say "guardrails are active for new tool calls; the 🚧 banner appears from the next session"
+say "$tool $("$installed" "$VERSION_ARG" 2>/dev/null || echo '(version unknown)') ready at $installed"
+say "$ready_msg"

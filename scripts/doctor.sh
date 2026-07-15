@@ -24,7 +24,7 @@ if fence_bin=$(find_bin fence); then
 else
   case "$(uname -s)" in
     Darwin | Linux)
-      echo "MISSING  fence — guardrails are OFF; the install-fence.sh script in this plugin fixes it (no sudo)"
+      echo "MISSING  fence — guardrails are OFF; this plugin's 'install-tool.sh fence' script fixes it (no sudo)"
       ;;
     *)
       echo "MISSING  fence — no native support on this OS yet; use WSL (hoophq/fence#26)"
@@ -36,6 +36,12 @@ if julius_bin=$(find_bin julius); then
   echo "OK       julius $("$julius_bin" --version 2>/dev/null | awk '{print $NF; exit}' || echo '(version unknown)') at $julius_bin — token savings active on supported commands ('julius savings' shows the ledger)"
 else
   echo "MISSING  julius (optional) — token savings off; install: brew install hoophq/tap/julius, or ask the agent to"
+fi
+
+if hooprs_bin=$(find_bin hooprs); then
+  echo "OK       hooprs $("$hooprs_bin" -version 2>/dev/null || echo '(version unknown)') at $hooprs_bin — session risk analysis ready (/hoop:risk-report)"
+else
+  echo "MISSING  hooprs (optional) — session risk analysis off; /hoop:risk-report offers the install, or: brew install hoophq/tap/hooprs"
 fi
 
 if cloak_bin=$(find_bin cloak); then
@@ -59,5 +65,5 @@ for f in "$HOME/.claude/settings.json" ".claude/settings.json" ".claude/settings
   fi
 done
 
-echo "INFO     Risk Analyzer and Alcatraz integrations are still landing — see the plugin README"
+echo "INFO     the Alcatraz PII-detection integration is still landing — see the plugin README"
 exit 0

@@ -50,17 +50,43 @@ jobs:
           echo "$out"
           echo "$out" | grep -q "MISSING  fence"
 
+      - name: Risk report degrades cleanly without hooprs
+        run: |
+          out=$(scripts/risk-report.sh)
+          echo "$out"
+          echo "$out" | grep -q "MISSING  hooprs"
+
       - name: Install fence from GitHub release (checksum-verified)
         run: |
-          HOOP_INSTALL_CHANNEL=release HOOP_BIN_DIR="$RUNNER_TEMP/hoopbin" scripts/install-fence.sh
+          HOOP_INSTALL_CHANNEL=release HOOP_BIN_DIR="$RUNNER_TEMP/hoopbin" scripts/install-tool.sh fence
           "$RUNNER_TEMP/hoopbin/fence" version
 
       - name: Doctor sees the installed binary via ~/.local/bin
         run: |
-          HOOP_INSTALL_CHANNEL=release scripts/install-fence.sh
+          HOOP_INSTALL_CHANNEL=release scripts/install-tool.sh fence
           out=$(scripts/doctor.sh)
           echo "$out"
           echo "$out" | grep -q "OK       fence"
+
+      - name: Install hooprs from GitHub release (checksum-verified)
+        run: |
+          HOOP_INSTALL_CHANNEL=release scripts/install-tool.sh hooprs
+          out=$(scripts/doctor.sh)
+          echo "$out"
+          echo "$out" | grep -q "OK       hooprs"
+
+      - name: Risk report runs end-to-end (session scope + all)
+        run: |
+          out=$(scripts/risk-report.sh)
+          echo "$out"
+          echo "$out" | grep -q "ERROR    cannot identify the current session"
+          out=$(CLAUDE_CODE_SESSION_ID=00000000-0000-0000-0000-000000000000 scripts/risk-report.sh)
+          echo "$out"
+          echo "$out" | grep -q "REPORT   html:"
+          out=$(scripts/risk-report.sh all)
+          echo "$out"
+          echo "$out" | grep -q "REPORT   json:"
+          test -s "$(echo "$out" | sed -n 's/REPORT   json: //p')"
 
       - name: Julius rewrite protocol through plugin wrapper
         run: |

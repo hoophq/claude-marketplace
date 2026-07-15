@@ -13,7 +13,11 @@
 
 ## Missing-binary flow — shipped
 
-When fence is absent, the `SessionStart` hook emits two things: a one-line hint to the user, and `additionalContext` telling the agent to proactively offer the one-script setup (`scripts/install-fence.sh` — brew, npm, or checksum-verified release download to `~/.local/bin`, never sudo). `/hoop:doctor` drives the same flow on demand via `scripts/doctor.sh`.
+When fence is absent, the `SessionStart` hook emits two things: a one-line hint to the user, and `additionalContext` telling the agent to proactively offer the one-script setup (`scripts/install-tool.sh fence` — brew, npm, or checksum-verified release download to `~/.local/bin`, never sudo). `/hoop:doctor` drives the same flow on demand via `scripts/doctor.sh`; the same installer covers hooprs (`install-tool.sh hooprs`).
+
+## Risk Analyzer — command-only, deliberately no hook
+
+`/hoop:risk-report` (→ `scripts/risk-report.sh` → `hooprs`) runs on demand. There is intentionally no automatic variant: `Stop` fires after every reply, so a scan per turn is pure noise, and `SessionEnd` output is never shown to anyone — the session is over. If an automatic report proves worth it, the shape would be an opt-in `SessionEnd` hook that silently writes the report file for later review.
 
 ## Julius — shipped
 
