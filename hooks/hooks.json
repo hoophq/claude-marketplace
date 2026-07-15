@@ -22,11 +22,21 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Bash|Grep|Glob|Read",
+        "matcher": "Bash|Grep|Glob|Read|WebFetch",
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/julius-hook.sh post"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/post-tool.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/prompt-guard.sh"
           }
         ]
       }

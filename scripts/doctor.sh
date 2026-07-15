@@ -45,9 +45,15 @@ else
 fi
 
 if alcatraz_bin=$(find_bin alcatraz); then
-  echo "OK       alcatraz $("$alcatraz_bin" version 2>/dev/null || echo '(version unknown)') at $alcatraz_bin — PII scanning ready (/hoop:pii-scan)"
+  echo "OK       alcatraz $("$alcatraz_bin" version 2>/dev/null || echo '(version unknown)') at $alcatraz_bin — PII scanning (/hoop:pii-scan) and live output masking active"
+  if [ -n "${HOOP_PII_MASK_DISABLE:-}" ]; then
+    echo "NOTE     live PII masking is disabled via HOOP_PII_MASK_DISABLE — tool outputs enter context unmasked"
+  fi
+  if [ "${HOOP_PROMPT_GUARD:-warn}" = "off" ]; then
+    echo "NOTE     the prompt PII guard is off via HOOP_PROMPT_GUARD"
+  fi
 else
-  echo "MISSING  alcatraz (optional) — PII scanning off; /hoop:pii-scan offers the install, or: brew install hoophq/tap/alcatraz"
+  echo "MISSING  alcatraz (optional) — PII scanning and live output masking off; /hoop:pii-scan offers the install, or: brew install hoophq/tap/alcatraz"
 fi
 
 if cloak_bin=$(find_bin cloak); then
