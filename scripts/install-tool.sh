@@ -1,16 +1,16 @@
 #!/bin/sh
 # Tool installer for the Hoop plugin — one command, no sudo.
 #
-# Usage: install-tool.sh <fence|hooprs>
+# Usage: install-tool.sh <fence|hooprs|alcatraz>
 #
 # Picks the best channel automatically: Homebrew, then npm, then a
 # checksum-verified download from GitHub releases into ~/.local/bin.
 # The plugin's wrappers look in ~/.local/bin, so the release channel
-# needs no PATH changes.
+# needs no PATH changes. Tools without an npm package skip that channel.
 #
 # Environment overrides:
 #   HOOP_INSTALL_CHANNEL=brew|npm|release   force a channel (default: auto)
-#   HOOP_FENCE_VERSION / HOOP_HOOPRS_VERSION=v1.1.0
+#   HOOP_FENCE_VERSION / HOOP_HOOPRS_VERSION / HOOP_ALCATRAZ_VERSION=v1.1.0
 #                                           release channel: pin a tag (default: latest)
 #   HOOP_BIN_DIR=/path                      release channel: install dir (default: ~/.local/bin)
 set -eu
@@ -35,8 +35,17 @@ case "$tool" in
     pin="${HOOP_HOOPRS_VERSION:-}"
     ready_msg="run /hoop:risk-report to scan this session for leaked PII and secrets"
     ;;
+  alcatraz)
+    REPO="hoophq/alcatraz"
+    BREW_FORMULA="hoophq/tap/alcatraz"
+    NPM_PKG="" # no npm package (yet)
+    VERSION_ARG="version" # `alcatraz version`
+    BIN_ENV="HOOP_ALCATRAZ_BIN"
+    pin="${HOOP_ALCATRAZ_VERSION:-}"
+    ready_msg="run /hoop:pii-scan to scan diffs, files, or pasted content for PII"
+    ;;
   *)
-    echo "hoop-install: usage: install-tool.sh <fence|hooprs>" >&2
+    echo "hoop-install: usage: install-tool.sh <fence|hooprs|alcatraz>" >&2
     exit 1
     ;;
 esac
@@ -70,11 +79,14 @@ channel="${HOOP_INSTALL_CHANNEL:-auto}"
 if [ "$channel" = auto ]; then
   if have brew; then
     channel=brew
-  elif have npm; then
+  elif have npm && [ -n "$NPM_PKG" ]; then
     channel=npm
   else
     channel=release
   fi
+fi
+if [ "$channel" = npm ] && [ -z "$NPM_PKG" ]; then
+  err "$tool has no npm package; use HOOP_INSTALL_CHANNEL=brew or release"
 fi
 
 case "$channel" in
