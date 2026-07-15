@@ -1,7 +1,7 @@
 ---
 description: Scan this session (or all local AI sessions) for leaked PII and secrets
 argument-hint: [all]
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/risk-report.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/install-tool.sh hooprs), Bash(open:*), Bash(xdg-open:*)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/risk-report.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/install-tool.sh hooprs)
 ---
 
 # Hoop risk report
@@ -12,7 +12,7 @@ Scan local AI coding sessions for PII and secrets with the Risk Analyzer (hooprs
 
 2. Relay the summary conversationally, not as raw output: security score, risk tier, findings by entity type and severity, and the direction split — output findings (what the agent pulled into its context) weigh heavier than input (what the user typed). Detection is known-pattern matching with checksum validation where formats allow; don't present it as catching every possible leak. If the scan reports 0 sessions, the transcript probably hasn't hit disk yet (brand-new session) — suggest retrying after a few more messages.
 
-3. Point at the saved report from the `REPORT html:` line and offer to open it (`open` on macOS, `xdg-open` on Linux). Reports are value-free — entity types and counts, never the matched values — so sharing one never re-leaks a leak.
+3. Share the saved report path from the `REPORT html:` line and tell the user they can open it in a browser (`open <path>` on macOS, `xdg-open <path>` on Linux). Opening it on their behalf is fine if they ask, but expect a permission prompt — this command deliberately pre-approves nothing beyond its own scripts. Reports are value-free — entity types and counts, never the matched values — so sharing one never re-leaks a leak.
 
 4. If the script prints `MISSING`: offer to install hooprs, and on a yes run `${CLAUDE_PLUGIN_ROOT}/scripts/install-tool.sh hooprs` — one script, no sudo (Homebrew, npm, or a checksum-verified GitHub release download into `~/.local/bin`). Then re-run step 1. If the install fails, show the exact error line and the manual fallbacks: `brew install hoophq/tap/hooprs`, `npm install -g @hoophq/rs`, or https://github.com/hoophq/rs/releases.
 
