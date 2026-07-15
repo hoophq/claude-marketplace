@@ -1,6 +1,6 @@
 {
   "name": "hoop",
-  "description": "Hoop's toolbelt for Claude Code and Claude-based agents: agent guardrails (Fence), credential cloaking (Cloak), session risk analysis, token saving on supported commands (Julius), and known-pattern PII detection (Alcatraz).",
+  "description": "Hoop's toolbelt for Claude Code and Claude-based agents: agent guardrails (Fence), session risk analysis (Risk Analyzer), token saving on supported commands (Julius), and known-pattern PII detection with live masking (Alcatraz). Credential cloaking (Cloak) lands next.",
   "version": "0.7.1",
   "author": {
     "name": "hoop.dev",
