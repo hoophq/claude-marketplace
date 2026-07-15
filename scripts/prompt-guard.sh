@@ -12,19 +12,12 @@ case "$mode" in
   *) mode=warn ;;
 esac
 
-ALCATRAZ="${HOOP_ALCATRAZ_BIN:-}"
+dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck disable=SC1091
+. "$dir/lib.sh"
+
+ALCATRAZ=$(hoop_find_tool alcatraz "${HOOP_ALCATRAZ_BIN:-}")
 if [ -z "$ALCATRAZ" ]; then
-  ALCATRAZ="$(command -v alcatraz 2>/dev/null)"
-fi
-if [ -z "$ALCATRAZ" ]; then
-  for c in /opt/homebrew/bin/alcatraz /usr/local/bin/alcatraz "${HOME:-/nonexistent}/.local/bin/alcatraz" "${HOME:-/nonexistent}/go/bin/alcatraz"; do
-    if [ -x "$c" ]; then
-      ALCATRAZ="$c"
-      break
-    fi
-  done
-fi
-if [ -z "$ALCATRAZ" ] || [ ! -x "$ALCATRAZ" ]; then
   exit 0
 fi
 

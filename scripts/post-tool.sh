@@ -15,25 +15,12 @@
 #                             file content feeds the agent's exact-match edits
 set -u
 
-# find_tool BINARY OVERRIDE — env override, then PATH, then common dirs.
-find_tool() {
-  if [ -n "$2" ]; then
-    echo "$2"
-    return
-  fi
-  command -v "$1" 2>/dev/null && return
-  for c in "/opt/homebrew/bin/$1" "/usr/local/bin/$1" "${HOME:-/nonexistent}/.local/bin/$1" "${HOME:-/nonexistent}/go/bin/$1"; do
-    if [ -x "$c" ]; then
-      echo "$c"
-      return
-    fi
-  done
-}
+dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck disable=SC1091
+. "$dir/lib.sh"
 
-ALCATRAZ=$(find_tool alcatraz "${HOOP_ALCATRAZ_BIN:-}")
-JULIUS=$(find_tool julius "${HOOP_JULIUS_BIN:-}")
-[ -n "$ALCATRAZ" ] && [ -x "$ALCATRAZ" ] || ALCATRAZ=""
-[ -n "$JULIUS" ] && [ -x "$JULIUS" ] || JULIUS=""
+ALCATRAZ=$(hoop_find_tool alcatraz "${HOOP_ALCATRAZ_BIN:-}")
+JULIUS=$(hoop_find_tool julius "${HOOP_JULIUS_BIN:-}")
 if [ -n "${HOOP_JULIUS_DISABLE:-}" ]; then
   JULIUS=""
 fi
