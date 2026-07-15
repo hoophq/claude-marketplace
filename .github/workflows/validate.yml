@@ -109,17 +109,21 @@ jobs:
           echo "$out"
           echo "$out" | grep -q "CREDIT_CARD"
           echo "$out" | grep -q "EMAIL_ADDRESS"
-          # Raw values never appear in output — masked only.
-          ! echo "$out" | grep -q "4532015112830366"
+          # Raw values never appear in output — masked only. Assert for
+          # every seeded value, not just one entity type.
+          ! echo "$out" | grep -Fq "4532015112830366"
+          ! echo "$out" | grep -Fq "jane@example.com"
           # Stdin (pasted-content) mode.
           out=$(printf 'ssn 536-90-4399\n' | scripts/pii-scan.sh -)
           echo "$out"
           echo "$out" | grep -q "US_SSN"
+          ! echo "$out" | grep -Fq "536-90-4399"
           # Default mode scans the git diff vs HEAD.
           echo "contact: jane@example.com" >> README.md
           out=$(scripts/pii-scan.sh)
           echo "$out"
           echo "$out" | grep -q "EMAIL_ADDRESS"
+          ! echo "$out" | grep -Fq "jane@example.com"
           git checkout -- README.md
 
       - name: Julius rewrite protocol through plugin wrapper

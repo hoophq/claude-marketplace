@@ -58,13 +58,17 @@ if [ $# -eq 0 ]; then
     exit 0
   fi
   # `git diff HEAD` covers staged + unstaged; on an unborn HEAD (no commits
-  # yet) it fails, so fall back to the unstaged diff.
-  diff=$(git diff HEAD 2>/dev/null) || diff=$(git diff)
-  if [ -z "$diff" ]; then
+  # yet) fall back to the unstaged diff. The diff streams straight into
+  # alcatraz — never buffered in a variable, so large diffs stay cheap.
+  base=""
+  if git rev-parse --verify --quiet HEAD >/dev/null 2>&1; then
+    base="HEAD"
+  fi
+  if git diff --quiet ${base:+"$base"} 2>/dev/null; then
     echo "OK       nothing to scan: the working tree matches HEAD (untracked files are not in the diff — pass their paths to scan them)"
     exit 0
   fi
-  printf '%s\n' "$diff" | run_alcatraz "$ALCATRAZ" diff -threshold "$threshold" ${allowlist:+-allowlist-file "$allowlist"}
+  git diff ${base:+"$base"} | run_alcatraz "$ALCATRAZ" diff -threshold "$threshold" ${allowlist:+-allowlist-file "$allowlist"}
 elif [ "$1" = "-" ]; then
   run_alcatraz "$ALCATRAZ" scan -threshold "$threshold" ${allowlist:+-allowlist-file "$allowlist"}
 else
