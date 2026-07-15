@@ -44,6 +44,12 @@ else
   echo "MISSING  hooprs (optional) — session risk analysis off; /hoop:risk-report offers the install, or: brew install hoophq/tap/hooprs"
 fi
 
+if alcatraz_bin=$(find_bin alcatraz); then
+  echo "OK       alcatraz $("$alcatraz_bin" version 2>/dev/null || echo '(version unknown)') at $alcatraz_bin — PII scanning ready (/hoop:pii-scan)"
+else
+  echo "MISSING  alcatraz (optional) — PII scanning off; /hoop:pii-scan offers the install, or: brew install hoophq/tap/alcatraz"
+fi
+
 if cloak_bin=$(find_bin cloak); then
   # `cloak --version` prints "cloak X.Y.Z (commit …)"; keep just the version.
   echo "OK       cloak $("$cloak_bin" --version 2>/dev/null | awk '{print $2; exit}' || echo '(version unknown)') at $cloak_bin"
@@ -65,5 +71,4 @@ for f in "$HOME/.claude/settings.json" ".claude/settings.json" ".claude/settings
   fi
 done
 
-echo "INFO     the Alcatraz PII-detection integration is still landing — see the plugin README"
 exit 0

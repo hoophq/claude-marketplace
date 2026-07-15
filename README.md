@@ -2,7 +2,7 @@
 
 Hoop's toolbelt for Claude Code and Claude-based agents, in a single install: agent guardrails, credential cloaking, session risk analysis, token savings, and PII detection.
 
-> **Status: early.** Fence guardrails, Julius token savings, and Risk Analyzer session scans are live; the remaining integrations are landing one by one (see [What's in the box](#whats-in-the-box)).
+> **Status: early.** Fence guardrails, Julius token savings, Risk Analyzer session scans, and Alcatraz PII scanning are live; Cloak lands next (see [What's in the box](#whats-in-the-box)).
 
 ## Install
 
@@ -23,6 +23,8 @@ Want token savings too? Install julius (`brew install hoophq/tap/julius`, or ask
 
 Wondering what your agent has already seen? `/hoop:risk-report` scans the current session for leaked PII and secrets — or every local AI session with `/hoop:risk-report all` — entirely on your machine, and saves a shareable, value-free HTML report (entity types and counts, never the matched values). If the [hooprs](https://github.com/hoophq/rs) binary is missing, the command offers the same one-script install.
 
+About to commit? `/hoop:pii-scan` checks your diff for PII before it lands — emails, credit cards, national IDs and more (45 known-pattern entity types across 12 countries), checksum-validated where formats allow, detected fully in-process with values always masked. Pass file paths to scan files instead, keep false positives quiet with a `.pii-allowlist`, and pair it with [alcatraz-action](https://github.com/hoophq/alcatraz-action) to enforce the same scan in CI.
+
 > Already ran `fence init` before installing the plugin? Run `fence uninstall` — the plugin ships the same hooks, so the settings-level copy just duplicates evaluation. `/hoop:doctor` detects this and offers the fix.
 
 ## What's in the box
@@ -33,7 +35,7 @@ Wondering what your agent has already seen? `/hoop:risk-report` scans the curren
 | [Cloak](https://github.com/hoophq/cloak) | Local proxy that hands the agent a fake localhost DSN so real credentials never reach the model | ATR-113 |
 | [Risk Analyzer](https://github.com/hoophq/rs) | Scans local AI sessions for leaked PII and secrets (`/hoop:risk-report`) — known-pattern detection with checksum validation, value-free shareable reports, nothing leaves your machine | ✅ live |
 | [Julius](https://github.com/hoophq/julius) | Token savings on supported commands via transparent command routing — measured, never lossy where it matters | ✅ live |
-| Alcatraz | In-process, known-pattern PII detection — no service, network, or model download | ATR-114 |
+| [Alcatraz](https://github.com/hoophq/alcatraz) | In-process, known-pattern PII detection (`/hoop:pii-scan`) — scan diffs, files, or pasted content; no service, network, or model download | ✅ live |
 
 ## Requirements
 

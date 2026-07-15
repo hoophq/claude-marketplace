@@ -56,6 +56,12 @@ jobs:
           echo "$out"
           echo "$out" | grep -q "MISSING  hooprs"
 
+      - name: PII scan degrades cleanly without alcatraz
+        run: |
+          out=$(scripts/pii-scan.sh)
+          echo "$out"
+          echo "$out" | grep -q "MISSING  alcatraz"
+
       - name: Install fence from GitHub release (checksum-verified)
         run: |
           HOOP_INSTALL_CHANNEL=release HOOP_BIN_DIR="$RUNNER_TEMP/hoopbin" scripts/install-tool.sh fence
@@ -87,6 +93,34 @@ jobs:
           echo "$out"
           echo "$out" | grep -q "REPORT   json:"
           test -s "$(echo "$out" | sed -n 's/REPORT   json: //p')"
+
+      - name: Install alcatraz from GitHub release (checksum-verified)
+        run: |
+          HOOP_INSTALL_CHANNEL=release scripts/install-tool.sh alcatraz
+          out=$(scripts/doctor.sh)
+          echo "$out"
+          echo "$out" | grep -q "OK       alcatraz"
+
+      - name: PII scan detects seeded PII end-to-end
+        run: |
+          # File mode: seeded fixture with a Luhn-valid card and an email.
+          printf 'card 4532015112830366 charged\nuser jane@example.com ok\n' > "$RUNNER_TEMP/seeded.log"
+          out=$(scripts/pii-scan.sh "$RUNNER_TEMP/seeded.log")
+          echo "$out"
+          echo "$out" | grep -q "CREDIT_CARD"
+          echo "$out" | grep -q "EMAIL_ADDRESS"
+          # Raw values never appear in output — masked only.
+          ! echo "$out" | grep -q "4532015112830366"
+          # Stdin (pasted-content) mode.
+          out=$(printf 'ssn 536-90-4399\n' | scripts/pii-scan.sh -)
+          echo "$out"
+          echo "$out" | grep -q "US_SSN"
+          # Default mode scans the git diff vs HEAD.
+          echo "contact: jane@example.com" >> README.md
+          out=$(scripts/pii-scan.sh)
+          echo "$out"
+          echo "$out" | grep -q "EMAIL_ADDRESS"
+          git checkout -- README.md
 
       - name: Julius rewrite protocol through plugin wrapper
         run: |
