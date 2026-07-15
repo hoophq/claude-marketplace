@@ -40,7 +40,8 @@ fi
 
 reports="$HOME/.risk-analyzer/reports"
 mkdir -p "$reports"
-stamp=$(date +%Y%m%d-%H%M%S)
+# PID suffix keeps same-second or concurrent runs from overwriting each other.
+stamp="$(date +%Y%m%d-%H%M%S)-$$"
 
 case "${1:-session}" in
   all)
