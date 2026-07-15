@@ -54,6 +54,14 @@ case "${1:-session}" in
       echo "ERROR    cannot identify the current session (CLAUDE_CODE_SESSION_ID is not set) — run '$0 all' to scan every session instead"
       exit 0
     fi
+    # The id is interpolated into a hooprs regexp: accept only UUID-ish
+    # characters so a malformed value can't widen the scan scope.
+    case "$CLAUDE_CODE_SESSION_ID" in
+      *[!0-9a-fA-F-]*)
+        echo "ERROR    CLAUDE_CODE_SESSION_ID does not look like a session id — refusing to build a scan filter from it"
+        exit 0
+        ;;
+    esac
     html="$reports/session-${CLAUDE_CODE_SESSION_ID%%-*}-$stamp.html"
     json="$reports/session-${CLAUDE_CODE_SESSION_ID%%-*}-$stamp.json"
     "$HOOPRS" -tools claude -session "^${CLAUDE_CODE_SESSION_ID}\$" -open=false -out "$html" -json "$json" ||
