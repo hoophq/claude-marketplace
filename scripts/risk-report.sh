@@ -12,6 +12,13 @@
 # Always exits 0 — this is a report, not a gate.
 set -u
 
+# Fail open even without HOME: binary discovery and the report dir both
+# dereference it, and set -u would otherwise abort mid-script.
+if [ -z "${HOME:-}" ]; then
+  echo "ERROR    HOME is not set — cannot locate hooprs or write reports"
+  exit 0
+fi
+
 HOOPRS="${HOOP_HOOPRS_BIN:-}"
 if [ -z "$HOOPRS" ]; then
   HOOPRS="$(command -v hooprs 2>/dev/null)"
